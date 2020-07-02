@@ -28,14 +28,14 @@ function ParDeBarreiras(altura, abertura, x) {
 
     this.sortearAbertura = _ => {
         const alturaSuperior = Math.random() * (altura - abertura)
-        const alturaInferior = altura - abertura - alturaSuperior 
+        const alturaInferior = altura - abertura - alturaSuperior
         this.superior.setAltura(alturaSuperior)
         this.inferior.setAltura(alturaInferior)
     }
 
     this.getX = _ => parseInt(this.elemento.style.left.split('px')[0])
     this.setX = x => this.elemento.style.left = `${x}px`
-    
+
     this.getLargura = _ => this.elemento.clientWidth
 
     // Estartando as barreiras iniciais 
@@ -44,5 +44,40 @@ function ParDeBarreiras(altura, abertura, x) {
     this.setX(x)
 }
 
-const b =  new ParDeBarreiras(700, 200, 400)
-document.querySelector('[wm-flappy]').appendChild(b.elemento)
+function Barreiras(altura, largura, abertura, espaco, notificarPonto) {
+    this.pares = [
+        new ParDeBarreiras(altura, abertura, largura),
+        new ParDeBarreiras(altura, abertura, largura + espaco),
+        new ParDeBarreiras(altura, abertura, largura + espaco * 2),
+        new ParDeBarreiras(altura, abertura, largura + espaco * 3)
+    ]
+    const deslocamento = 3
+    this.animar = _ => {
+        this.pares.forEach(par => {
+            par.setX(par.getX() - deslocamento)
+
+            // Quando o elemento sair do jogo
+            if (par.getX() < -par.getLargura()) {
+                par.setX(par.getX() + espaco * this.pares.length)
+                par.sortearAbertura()
+            }
+
+            const meio = largura / 2
+            const cruzouOMeio = par.getX() + deslocamento >= meio && par.getX() < meio 
+            cruzouOMeio && notificarPonto()
+        })
+    }
+}
+
+const barreiras = new Barreiras(700, 1200, 200, 400)
+const areaDojogo = document.querySelector('[wm-flappy]')
+barreiras.pares.forEach(par => areaDojogo.appendChild(par.elemento))
+
+setInterval(_ => {
+    barreiras.animar()
+}, 10)
+
+
+// const b =  new ParDeBarreiras(700, 200, 400)
+// document.querySelector('[wm-flappy]').appendChild(b.elemento)
+
